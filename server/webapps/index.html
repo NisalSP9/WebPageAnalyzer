@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Page Analyser</title>
+    <style>
+        label {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 50%;
+            margin-left: 50px;
+            padding: 8px;
+        }
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 50%;
+            margin: 50px;
+        }
+
+        td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+            width: 25%;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
+        #overlay {
+            position: fixed;
+            display: none;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div id="overlay" onclick="off()"></div>
+<label for="requ_url">URL :</label>
+<input type="text" id="requ_url" name="requ_url">
+<button id="btn">Analyse</button>
+<br>
+<div></div>
+<div id="report"></div>
+</body>
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script src="func.js"></script>
+</html>
