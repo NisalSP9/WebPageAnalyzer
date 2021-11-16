@@ -4,7 +4,6 @@ $(document).ready(function () {
         var requURL = {
             url: $("#requ_url").val()
         }
-
         if (validate.length === 0) {
             on();
             $.ajax({
@@ -14,7 +13,6 @@ $(document).ready(function () {
                 data: JSON.stringify(requURL),
                 success: function (result) {
                     var table = $("<table><th>Analyze Report</th>");
-
                     table.append("<tr><th>HTML Version :</th><td>" + result["HTMLVersion"] + "</td></tr>");
                     table.append("<tr><th>Page Title :</th><td>" + result["pageTitle"] + "</td></tr>");
                     table.append("<tr><th>Headings :</th><td>" + JSON.stringify(result["headings"]) + "</td></tr>");
@@ -23,11 +21,10 @@ $(document).ready(function () {
                     table.append("<tr><th>Inaccessible Links :</th><td>" + result["inaccessible"] + "</td></tr>");
                     table.append("<tr><th>Has a login form :</th><td>" + result["loginForm"] + "</td></tr>");
                     $("#report").html(table);
-                    off()
+                    off();
                 },
                 error: function (rst) {
                     var table = $("<table><th>Analyze Report</th>");
-
                     table.append("<tr><th>HTML Version :</th><td></td></tr>");
                     table.append("<tr><th>Page Title :</th><td></td></tr>");
                     table.append("<tr><th>Headings :</th><td></td></tr>");
@@ -36,8 +33,8 @@ $(document).ready(function () {
                     table.append("<tr><th>Inaccessible Links :</th><td></td></tr>");
                     table.append("<tr><th>Has a login form :</th><td></td></tr>");
                     $("#report").html(table);
-                    off()
-                    alert(rst["responseText"])
+                    off();
+                    alert(rst["responseText"]);
                 }
             });
         }

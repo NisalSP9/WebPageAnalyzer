@@ -13,34 +13,26 @@ import (
 func GetHTMLPage(URL string) (models.HTMLPAGEINFOR,error) {
 	var resData models.HTMLPAGEINFOR
 	response, err := http.Get(URL)
-
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("Error while REST call : %v\n", err.Error())
 		return resData,err
 	}
-
 	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("Error while ReadAll : %v\n", err.Error())
 		return resData,err
 	}
-
 	reader := strings.NewReader(string(responseData))
 	tokenizer := html.NewTokenizer(reader)
-
 	hTagMap := make(map[string]int)
-
 	pageStatus := true
 	HTMLTagCount := 0
-
 	htmlVersion := ""
 	inaccessible := 0
 	internal := 0
 	external := 0
 	hasLoginForm := false
-
 	for pageStatus {
-
 		tokenType := tokenizer.Next()
 		tokenizer.AllowCDATA(true)
 		if tokenType == html.ErrorToken {
@@ -50,7 +42,6 @@ func GetHTMLPage(URL string) (models.HTMLPAGEINFOR,error) {
 			log.Printf("Error: %v\n", tokenizer.Err())
 		}
 		tag, hasAttr := tokenizer.TagName()
-		
 		if strings.Contains(string(tokenizer.Raw()),"4.01"){
 			htmlVersion = "4.01"
 		}else if strings.Contains(string(tokenizer.Raw()),"1.0"){
@@ -60,30 +51,20 @@ func GetHTMLPage(URL string) (models.HTMLPAGEINFOR,error) {
 		}else {
 			htmlVersion = "5"
 		}
-
-
-
-
-		//log.Println(string(tag))
-
 		if strings.Contains(string(tag), "html") {
 			HTMLTagCount += 1
 		}
-
 		if HTMLTagCount == 2 {
 			pageStatus = false
 		}
-
 		count, prs := hTagMap[string(tag)]
 		if tokenType == html.StartTagToken {
-
 			if "title" == string(tag) {
 				tokenType = tokenizer.Next()
 				if tokenType == html.TextToken {
 					resData.PageTitle = tokenizer.Token().Data
 				}
 			}
-
 			if strings.Contains(string(tag), "h1") ||
 				strings.Contains(string(tag), "h2") ||
 				strings.Contains(string(tag), "h3") ||
@@ -97,42 +78,61 @@ func GetHTMLPage(URL string) (models.HTMLPAGEINFOR,error) {
 				}
 			}
 		}
-
 		if strings.Contains(string(tag), "form") {
 			hasLoginForm = true
 		}
-
-		if hasAttr {
+		if hasAttr{
 			for {
-				attrKey, attrValue, moreAttr := tokenizer.TagAttr()
-				if string(attrKey) == "src" {
-					strLink := string(attrValue)
-					resLink := strings.Split(strLink, "/")
-					URLLink := strings.Split(URL, "/")
-					if len(resLink) > 2 && len(URLLink) > 2 {
-						if resLink[2] == URLLink[2] {
-							internal += 1
-						} else {
-							external += 1
+				_, attrValue, moreAttr := tokenizer.TagAttr()
+				strAttrValue := string(attrValue)
+				if strings.Contains(strAttrValue, "http") {
+					URLLink := strings.Split(URL, ".")
+					if strings.Contains(strAttrValue, ","){
+						URLArray := strings.Split(strAttrValue,",")
+						for _,e := range URLArray{
+							leftTrimedE := strings.TrimLeft(e," ")
+							strLink := strings.Split(leftTrimedE," ")[0]
+							resLink := strings.Split(strLink, ".")
+							if len(resLink) > 1 && len(URLLink) > 1 {
+								if resLink[0] == URLLink[0] {
+									internal += 1
+								} else {
+									external += 1
+								}
+							}
+							r, err := http.Get(strLink)
+							if err != nil {
+								log.Printf("Error while check access 1: %v\n", err.Error())
+								break
+							}
+							if r.StatusCode != 200 {
+								inaccessible += 1
+							}
 						}
-
+					}else {
+						strLink := strAttrValue
+						resLink := strings.Split(strLink, ".")
+						if len(resLink) > 1 && len(URLLink) > 1 {
+							if resLink[0] == URLLink[0] {
+								internal += 1
+							} else {
+								external += 1
+							}
+						}
+						r, err := http.Get(strAttrValue)
+						if err != nil {
+							log.Printf("Error while check access 2: %v\n", err.Error())
+							break
+						}
+						if r.StatusCode != 200 {
+							inaccessible += 1
+						}
 					}
-					r, err := http.Get(string(attrValue))
-					if err != nil {
-						log.Println(err.Error())
-						break
-					}
-					if r.StatusCode != 200 {
-						inaccessible += 1
-					}
-
 				}
-
 				if !moreAttr {
 					break
 				}
 			}
-
 		}
 
 	}
@@ -142,7 +142,5 @@ func GetHTMLPage(URL string) (models.HTMLPAGEINFOR,error) {
 	resData.External = external
 	resData.LoginForm = hasLoginForm
 	resData.HTMLVersion = htmlVersion
-
 	return resData,err
-
 }

@@ -12,7 +12,7 @@ func main() {
 	router := routes.UserRoutes()
 	http.Handle("/api/", router)
 
-	//Starting the FileServer
+	//Starting the web server
 	fs := http.FileServer(http.Dir("server/webapps"))
 	http.Handle("/", fs)
 
